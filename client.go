@@ -109,6 +109,9 @@ func (result *resultImpl) Error() error {
 }
 
 func (result *resultImpl) Value(key string, v interface{}) error {
+
+	result.extractValues()
+
 	data, ok := result.values[key]
 
 	if !ok {
