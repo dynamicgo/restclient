@@ -139,36 +139,6 @@ func New(url string) Client {
 	}
 }
 
-func handleResult(resp *resty.Response, name string, obj interface{}) error {
-	result := make(map[string]interface{})
-
-	if err := json.Unmarshal(resp.Body(), &result); err != nil {
-		return fmt.Errorf("unmarshal result err %s\n%s", err, string(resp.Body()))
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("http code(%s) code(%v) errmsg %s", resp.Status(), result["code"], result["msg"])
-	}
-
-	data, ok := result[name]
-
-	if !ok {
-		return fmt.Errorf("unknown return value %s\n%s", name, string(resp.Body()))
-	}
-
-	buff, err := json.Marshal(data)
-
-	if err != nil {
-		return fmt.Errorf("unmarshal result(%s) err %s\n%s", name, err, string(resp.Body()))
-	}
-
-	if err := json.Unmarshal(buff, obj); err != nil {
-		return fmt.Errorf("unmarshal result(%s) err %s\n%s", name, err, string(buff))
-	}
-
-	return nil
-}
-
 func (client *clientImpl) POST(path string, request interface{}, options ...Option) Result {
 
 	r := resty.R().SetBody(request) //.Post(fmt.Sprintf("%s/%s", client.url, path))
@@ -177,7 +147,7 @@ func (client *clientImpl) POST(path string, request interface{}, options ...Opti
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Post(fmt.Sprintf("%s/%s", client.url, path))
+	resp, err := r.Post(fmt.Sprintf("%s%s", client.url, path))
 
 	return newResult(err, resp)
 }
@@ -204,7 +174,7 @@ func (client *clientImpl) GET(path string, request interface{}, options ...Optio
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Get(fmt.Sprintf("%s/%s", client.url, path))
+	resp, err := r.Get(fmt.Sprintf("%s%s", client.url, path))
 
 	return newResult(err, resp)
 }
@@ -231,7 +201,7 @@ func (client *clientImpl) DELETE(path string, request interface{}, options ...Op
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Delete(fmt.Sprintf("%s/%s", client.url, path))
+	resp, err := r.Delete(fmt.Sprintf("%s%s", client.url, path))
 
 	return newResult(err, resp)
 }
