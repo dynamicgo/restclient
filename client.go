@@ -76,6 +76,10 @@ func (result *resultImpl) extractValues() {
 		return
 	}
 
+	if result.resp == nil {
+		return
+	}
+
 	values := make(map[string]interface{})
 
 	json.Unmarshal(result.resp.Body(), &values)
@@ -155,17 +159,33 @@ func (client *clientImpl) POST(path string, request interface{}, options ...Opti
 	return newResult(err, resp)
 }
 
-func (client *clientImpl) GET(path string, request interface{}, options ...Option) Result {
-
-	var params map[string]string
+func (client *clientImpl) requestToMap(request interface{}) (map[string]string, error) {
+	var params map[string]interface{}
 
 	buff, err := json.Marshal(request)
 
 	if err != nil {
-		return newResult(err, nil)
+		return nil, err
 	}
 
 	err = json.Unmarshal(buff, &params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	r := make(map[string]string)
+
+	for k, v := range params {
+		r[k] = fmt.Sprintf("%v", v)
+	}
+
+	return r, nil
+}
+
+func (client *clientImpl) GET(path string, request interface{}, options ...Option) Result {
+
+	params, err := client.requestToMap(request)
 
 	if err != nil {
 		return newResult(err, nil)
@@ -184,15 +204,7 @@ func (client *clientImpl) GET(path string, request interface{}, options ...Optio
 
 func (client *clientImpl) DELETE(path string, request interface{}, options ...Option) Result {
 
-	var params map[string]string
-
-	buff, err := json.Marshal(request)
-
-	if err != nil {
-		return newResult(err, nil)
-	}
-
-	err = json.Unmarshal(buff, &params)
+	params, err := client.requestToMap(request)
 
 	if err != nil {
 		return newResult(err, nil)
