@@ -174,7 +174,7 @@ func (client *clientImpl) checkURL(s string) (string, error) {
 		return "", err
 	}
 
-	u.Path = filepath.Join(u.Path)
+	u.Path = filepath.Clean(u.Path)
 
 	return u.String(), nil
 }

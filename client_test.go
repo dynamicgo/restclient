@@ -13,7 +13,7 @@ func TestURL(t *testing.T) {
 
 	require.NoError(t, err)
 
-	u.Path = filepath.Join(u.Path)
+	u.Path = filepath.Clean(u.Path)
 
 	println(u.String())
 }
