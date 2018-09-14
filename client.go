@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"path/filepath"
 	"sync"
 
 	"github.com/go-resty/resty"
@@ -154,9 +156,27 @@ func (client *clientImpl) POST(path string, request interface{}, options ...Opti
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Post(fmt.Sprintf("%s%s", client.url, path))
+	url, err := client.checkURL(fmt.Sprintf("%s%s", client.url, path))
+
+	if err != nil {
+		return newResult(err, nil)
+	}
+
+	resp, err := r.Post(url)
 
 	return newResult(err, resp)
+}
+
+func (client *clientImpl) checkURL(s string) (string, error) {
+	u, err := url.Parse(s)
+
+	if err != nil {
+		return "", err
+	}
+
+	u.Path = filepath.Join(u.Path)
+
+	return u.String(), nil
 }
 
 func (client *clientImpl) requestToMap(request interface{}) (map[string]string, error) {
@@ -197,7 +217,13 @@ func (client *clientImpl) GET(path string, request interface{}, options ...Optio
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Get(fmt.Sprintf("%s%s", client.url, path))
+	url, err := client.checkURL(fmt.Sprintf("%s%s", client.url, path))
+
+	if err != nil {
+		return newResult(err, nil)
+	}
+
+	resp, err := r.Get(url)
 
 	return newResult(err, resp)
 }
@@ -216,7 +242,13 @@ func (client *clientImpl) DELETE(path string, request interface{}, options ...Op
 		option(r.RawRequest)
 	}
 
-	resp, err := r.Delete(fmt.Sprintf("%s%s", client.url, path))
+	url, err := client.checkURL(fmt.Sprintf("%s%s", client.url, path))
+
+	if err != nil {
+		return newResult(err, nil)
+	}
+
+	resp, err := r.Delete(url)
 
 	return newResult(err, resp)
 }
