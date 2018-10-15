@@ -8,8 +8,15 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/dynamicgo/xerrors/apierr"
+
 	"github.com/go-resty/resty"
 )
+
+type errresp struct {
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
+}
 
 // Auth .
 type Auth interface {
@@ -108,7 +115,16 @@ func (result *resultImpl) Error() error {
 	}
 
 	if result.resp != nil {
-		return fmt.Errorf("status code(%s) %s", result.resp.Status(), string(result.resp.Body()))
+
+		var rc errresp
+
+		err := json.Unmarshal(result.resp.Body(), &rc)
+
+		if err != nil {
+			return apierr.New(1, string(result.resp.Body()))
+		}
+
+		return apierr.New(rc.Code, rc.Msg)
 	}
 
 	return nil
